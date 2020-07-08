@@ -52,7 +52,7 @@ directory <- ("output/1_SNF_analysis/")
 
 C = 4 #cluster number
 robust.W = RobustCoreClusteringMatrix(feature.affinity.mat.list = list(AM_FA, AM_CT, AM_volume, AM_clinical),
-                                      exp.num.samples = 1000, num.clusts = C, seed = 3333)
+                                      exp.num.samples = 1000, num.clusts = C)
 #Two matrices - Dense Core Cluster Matrix and Sparse Core Cluster Matrix
 dense <- robust.W[1]
 dense <- matrix(unlist(dense), ncol = 176, byrow = TRUE)
@@ -117,7 +117,6 @@ for (i in 1:176){
 }
 
 write.csv(clusters, file=file.path(directory, paste("4clust_groups_k18_0.8_1000perms.csv", sep="")))
-
 
 
 # Check if anyone doesn't reliably cluster in the cohort
