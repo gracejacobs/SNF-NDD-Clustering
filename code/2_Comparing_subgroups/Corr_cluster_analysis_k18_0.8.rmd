@@ -1,0 +1,371 @@
+---
+title: "POND SNF Cluster analysis"
+author: "Grace Jacobs"
+date: "June 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(effsize)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(data.table)
+library(ggsignif)
+library(dunn.test)
+library(tidyr)
+library(knitr)
+library(png)
+library(reshape2)
+library(haven)
+library(ggpubr)
+library(lsr)
+library(car)
+library(sjstats)
+library(agricolae)
+
+
+#source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+
+source("setting_up_cluster_analysis.r")
+
+intel <- all[, c("ID", "IQ")]
+CT_stacked <- merge(intel, CT_stacked, by="ID")
+SA_stacked <- merge(intel, SA_stacked, by="ID")
+top_measures <- merge(intel, top_measures, by="ID")
+all_features <- merge(intel, all_features, by="ID")
+top_10 <- merge(intel, top_10, by="ID")
+
+NMI <- read.csv("../../output/1_SNF_analysis/all_scores_k18_0.8_1000perms.csv")
+NMI$Measure <- gsub('-', '.', NMI$Measure)
+NMI$Measure <- gsub('/', '.', NMI$Measure)
+
+```
+
+
+## Cluster analysis - n=176, between the ages of 6-16
+
+###Measures included:  
+Cortical thickness from freesurfer  
+Subcortical volumes from freesurfer
+FA of 46 white matter tracts determined using TBSS 
+7 clinical scores from 5 scales   
+
+Parameters below chosen based on SNF guidelines and increasing the NMI scores each data type has with the fused similarity network   
+K=18
+iterations=10  
+hyperparameter=0.8  
+No individuals cluster unreliably according to resampling for the robust script
+
+### Similarity Network Clusters
+
+##Demographics of groups and their symptom severity for clinical symptoms
+```{r, echo=FALSE}
+Demographics <- filter(all) %>%
+  group_by(group) %>%
+  summarise(N=length(group), Age=mean(age), Age_sd=sd(age), IQ=mean(IQ, na.rm=TRUE), Internalizing=mean(CB68IPTS, na.rm=TRUE),Internalizing_sd=sd(CB68IPTS, na.rm=TRUE), Externalizing=mean(CB68EPTS, na.rm=TRUE), Externalizing_sd=sd(CB68EPTS, na.rm=TRUE), OC_symps=mean(TPOCS_TOT, na.rm=TRUE),OC_symps_sd=sd(TPOCS_TOT, na.rm=TRUE), Attention=mean(ADHD_I_SUB, na.rm=TRUE), Attention_sd=sd(ADHD_I_SUB, na.rm=TRUE), Hyperactivity=mean(ADHD_HI_SUB, na.rm=TRUE),Hyperactivity_sd=sd(ADHD_HI_SUB, na.rm=TRUE), Restricted_behaviours=mean(RBSALLT, na.rm=TRUE),Restricted_behaviours_sd=sd(RBSALLT, na.rm=TRUE), Social_comm=mean(SCQTOT, na.rm=TRUE),Social_comm_sd=sd(SCQTOT, na.rm=TRUE), ABAS=mean(AB21GCCS, na.rm=TRUE), ABAS_sd=sd(AB21GCCS, na.rm=TRUE))
+
+kable(t(Demographics))
+```
+
+
+##Demographics of clinical diagnoses
+
+```{r, echo=FALSE}
+Demographics <- filter(all) %>%
+  group_by(clin_diagnosis) %>%
+  summarise(N=length(group), Age=mean(age), Age_sd=sd(age), IQ=mean(IQ, na.rm=TRUE), Internalizing=mean(CB68IPTS, na.rm=TRUE),Internalizing_sd=sd(CB68IPTS, na.rm=TRUE), Externalizing=mean(CB68EPTS, na.rm=TRUE), Externalizing_sd=sd(CB68EPTS, na.rm=TRUE), OC_symps=mean(TPOCS_TOT, na.rm=TRUE),OC_symps_sd=sd(TPOCS_TOT, na.rm=TRUE), Attention=mean(ADHD_I_SUB, na.rm=TRUE), Attention_sd=sd(ADHD_I_SUB, na.rm=TRUE), Hyperactivity=mean(ADHD_HI_SUB, na.rm=TRUE),Hyperactivity_sd=sd(ADHD_HI_SUB, na.rm=TRUE), Restricted_behaviours=mean(RBSALLT, na.rm=TRUE),Restricted_behaviours_sd=sd(RBSALLT, na.rm=TRUE), Social_comm=mean(SCQTOT, na.rm=TRUE),Social_comm_sd=sd(SCQTOT, na.rm=TRUE), ABAS=mean(AB21GCCS, na.rm=TRUE), ABAS_sd=sd(AB21GCCS, na.rm=TRUE))
+
+kable(t(Demographics))
+```
+
+
+
+### Creating statistics table for all SNF features for data-driven groups 
+```{r}
+
+Clinical <- filter(all_features) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(thickness ~age + GENDER + IQ + group, data=.,), type=2)))
+
+## calculating the Eta sq for each feature
+names <- unique(all_features$Measure)
+effects <- c("term", "etasq")
+for (idx in 1:length(unique(all_features$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + GENDER + IQ + group, data=all)))
+  effects <- rbind(effects, stats)
+}
+
+effects <- effects[which(effects$term == "group"), ]
+effects$Measure <- names
+effects <- merge(NMI, effects, by="Measure")
+effects <- effects[order(effects$R), ]
+effects$etasq <- signif(as.numeric(effects$etasq), digits = 2)
+
+# organizing table with other statistics for each measure
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "group") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results <- All_results %>% arrange(p.value)
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+All_results$df <- NULL
+
+print(All_results)
+
+top_contributing_clin <- All_results
+
+top_contributing_clin <- merge(NMI, top_contributing_clin, by="Measure")
+top_contributing_clin <- top_contributing_clin[order(top_contributing_clin$R), ]
+
+top_contributing_clin$NMI <- signif(top_contributing_clin$NMI, digits = 3)
+top_contributing_clin$p.fdr <- signif(top_contributing_clin$p.fdr, digits = 3)
+
+top_contributing_clin$p.fdr <- ifelse(top_contributing_clin$p.fdr > 0.05, "n.s", top_contributing_clin$p.fdr)
+top_contributing_clin <- top_contributing_clin[,c("Rank", "Measure", "NMI", "statistic", "p.fdr")]
+top_contributing_clin$p.fdr <- format(top_contributing_clin$p.fdr, scientific = TRUE)
+
+top_contributing_clin$Etasq <- effects$etasq
+print(top_contributing_clin)
+
+write.csv(top_contributing_clin, file="../../output/2_Comparing_subgroups/all_snf_measures_groupdiffs.csv")
+
+```
+
+
+### Creating statistics table for all SNF features for for clinical diagnoses - ALL FEATURES
+```{r}
+
+Clinical <- filter(all_features) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(thickness ~age + GENDER + IQ + clin_diagnosis, data=.,), type=2)))
+
+## calculating the Eta sq for each feature
+names <- unique(all_features$Measure)
+effects <- c("term", "etasq")
+for (idx in 1:length(unique(all_features$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + GENDER + IQ + clin_diagnosis, data=all)))
+  effects <- rbind(effects, stats)
+}
+effects <- effects[which(effects$term == "clin_diagnosis"), ]
+effects$Measure <- names
+effects <- merge(NMI, effects, by="Measure")
+effects <- effects[order(effects$R), ]
+effects$etasq <- signif(as.numeric(effects$etasq), digits = 2)
+
+# organizing table with other statistics for each measure
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "clin_diagnosis") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results <- All_results %>% arrange(p.value)
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+#All_results$p.fdr <- signif(All_results$p.fdr, digits = 3)
+#All_results$term <- NULL
+All_results$df <- NULL
+
+print(All_results)
+
+top_contributing_clin <- All_results
+
+top_contributing_clin <- merge(NMI, top_contributing_clin, by="Measure")
+top_contributing_clin <- top_contributing_clin[order(top_contributing_clin$R), ]
+
+top_contributing_clin$NMI <- signif(top_contributing_clin$NMI, digits = 3)
+top_contributing_clin$p.fdr <- signif(top_contributing_clin$p.fdr, digits = 3)
+
+top_contributing_clin$p.fdr <- ifelse(top_contributing_clin$p.fdr > 0.05, "n.s", top_contributing_clin$p.fdr)
+top_contributing_clin <- top_contributing_clin[,c("Rank", "Measure", "NMI", "statistic", "p.fdr")]
+top_contributing_clin$p.fdr <- format(top_contributing_clin$p.fdr, scientific = TRUE)
+
+top_contributing_clin$Etasq <- effects$etasq
+
+print(top_contributing_clin)
+
+write.csv(top_contributing_clin, file="../../output/2_Comparing_subgroups/all_snf_measures_diagnosticdiffs.csv")
+
+
+```
+
+### Checking age, sex and IQ interactions
+
+### group by IQ interactions 
+
+```{r}
+Clinical <- filter(all_features) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(thickness ~age + GENDER + IQ*group, data=.,), type=2)))
+
+## calculating the Eta sq for each feature
+names <- unique(all_features$Measure)
+effects <- c("term", "etasq")
+for (idx in 1:length(unique(all_features$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + GENDER + IQ*group, data=all)))
+  effects <- rbind(effects, stats)
+}
+effects <- effects[which(effects$term == "IQ:group"), ]
+effects$Measure <- names
+effects <- merge(NMI, effects, by="Measure")
+effects <- effects[order(effects$R), ]
+effects$etasq <- signif(as.numeric(effects$etasq), digits = 2)
+
+# organizing table with other statistics for each measure
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "IQ:group") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results <- All_results %>% arrange(p.value)
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+#All_results$p.fdr <- signif(All_results$p.fdr, digits = 3)
+#All_results$term <- NULL
+#All_results$df <- NULL
+
+print(All_results)
+
+top_contributing_clin <- All_results
+
+top_contributing_clin <- merge(NMI, top_contributing_clin, by="Measure")
+top_contributing_clin <- top_contributing_clin[order(top_contributing_clin$R), ]
+
+top_contributing_clin$NMI <- signif(top_contributing_clin$NMI, digits = 3)
+top_contributing_clin$p.fdr <- signif(top_contributing_clin$p.fdr, digits = 3)
+
+top_contributing_clin$p.value <- ifelse(top_contributing_clin$p.value > 0.05, "n.s", top_contributing_clin$p.value)
+top_contributing_clin <- top_contributing_clin[,c("Rank", "Measure", "NMI", "statistic", "p.value")]
+top_contributing_clin$p.fdr <- format(top_contributing_clin$p.fdr, scientific = TRUE)
+
+top_contributing_clin$Etasq <- effects$etasq
+
+print(top_contributing_clin)
+
+write.csv(top_contributing_clin, file="../../output/2_Comparing_subgroups/all_snf_measures_groupbyIQint.csv")
+
+```
+
+### group by sex interactions
+
+```{r}
+Clinical <- filter(all_features) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(thickness ~age + IQ + GENDER*group, data=.,), type=2)))
+
+## calculating the Eta sq for each feature
+names <- unique(all_features$Measure)
+effects <- c("term", "etasq")
+for (idx in 1:length(unique(all_features$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + IQ + GENDER*group, data=all)))
+  effects <- rbind(effects, stats)
+}
+effects <- effects[which(effects$term == "GENDER:group"), ]
+effects$Measure <- names
+effects <- merge(NMI, effects, by="Measure")
+effects <- effects[order(effects$R), ]
+effects$etasq <- signif(as.numeric(effects$etasq), digits = 2)
+
+# organizing table with other statistics for each measure
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "GENDER:group") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results <- All_results %>% arrange(p.value)
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+#All_results$p.fdr <- signif(All_results$p.fdr, digits = 3)
+#All_results$term <- NULL
+#All_results$df <- NULL
+
+print(All_results)
+
+top_contributing_clin <- All_results
+
+top_contributing_clin <- merge(NMI, top_contributing_clin, by="Measure")
+top_contributing_clin <- top_contributing_clin[order(top_contributing_clin$R), ]
+
+top_contributing_clin$NMI <- signif(top_contributing_clin$NMI, digits = 3)
+top_contributing_clin$p.fdr <- signif(top_contributing_clin$p.fdr, digits = 3)
+
+top_contributing_clin$p.value <- ifelse(top_contributing_clin$p.value > 0.05, "n.s", top_contributing_clin$p.value)
+top_contributing_clin <- top_contributing_clin[,c("Rank", "Measure", "NMI", "statistic", "p.value")]
+top_contributing_clin$p.fdr <- format(top_contributing_clin$p.fdr, scientific = TRUE)
+
+top_contributing_clin$Etasq <- effects$etasq
+
+print(top_contributing_clin)
+
+write.csv(top_contributing_clin, file="../../output/2_Comparing_subgroups/all_snf_measures_groupbysexint.csv")
+
+```
+
+
+### group by age interactions
+
+```{r}
+Clinical <- filter(all_features) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(thickness ~ IQ + GENDER + age*group, data=.,), type=2)))
+
+## calculating the Eta sq for each feature
+names <- unique(all_features$Measure)
+effects <- c("term", "etasq")
+for (idx in 1:length(unique(all_features$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~IQ + GENDER + age*group, data=all)))
+  effects <- rbind(effects, stats)
+}
+effects <- effects[which(effects$term == "age:group"), ]
+effects$Measure <- names
+effects <- merge(NMI, effects, by="Measure")
+effects <- effects[order(effects$R), ]
+effects$etasq <- signif(as.numeric(effects$etasq), digits = 2)
+
+# organizing table with other statistics for each measure
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "age:group") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results <- All_results %>% arrange(p.value)
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+#All_results$p.fdr <- signif(All_results$p.fdr, digits = 3)
+#All_results$term <- NULL
+#All_results$df <- NULL
+
+print(All_results)
+
+top_contributing_clin <- All_results
+
+top_contributing_clin <- merge(NMI, top_contributing_clin, by="Measure")
+top_contributing_clin <- top_contributing_clin[order(top_contributing_clin$R), ]
+
+top_contributing_clin$NMI <- signif(top_contributing_clin$NMI, digits = 3)
+top_contributing_clin$p.fdr <- signif(top_contributing_clin$p.fdr, digits = 3)
+
+top_contributing_clin$p.value <- ifelse(top_contributing_clin$p.value > 0.05, "n.s", top_contributing_clin$p.value)
+top_contributing_clin <- top_contributing_clin[,c("Rank", "Measure", "NMI", "statistic", "p.value")]
+top_contributing_clin$p.fdr <- format(top_contributing_clin$p.fdr, scientific = TRUE)
+
+top_contributing_clin$Etasq <- effects$etasq
+
+print(top_contributing_clin)
+
+write.csv(top_contributing_clin, file="../../output/2_Comparing_subgroups/all_snf_measures_groupbyageint.csv")
+
+```
+
+
+
+
+
+
+
+
+
+
