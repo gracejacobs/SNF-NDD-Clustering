@@ -1,0 +1,151 @@
+---
+title: "surface_area_&_adaptive_functioning"
+author: "Grace Jacobs"
+date: "14/07/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(effsize)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(broom)
+library(data.table)
+library(ggsignif)
+library(dunn.test)
+library(tidyr)
+library(knitr)
+library(png)
+library(reshape2)
+library(haven)
+library(ggpubr)
+library(lsr)
+library(car)
+library(sjstats)
+library(agricolae)
+
+
+#source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+
+source("/Users/grace/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/code/setting_up_cluster_analysis.r")
+
+intel <- all[, c("ID", "IQ")]
+CT_stacked <- merge(intel, CT_stacked, by="ID")
+SA_stacked <- merge(intel, SA_stacked, by="ID")
+top_measures <- merge(intel, top_measures, by="ID")
+all_features <- merge(intel, all_features, by="ID")
+top_10 <- merge(intel, top_10, by="ID")
+
+NMI <- read.csv("../../output/1_SNF_analysis/all_scores_k18_0.8_1000perms.csv")
+NMI$Measure <- gsub('-', '.', NMI$Measure)
+NMI$Measure <- gsub('/', '.', NMI$Measure)
+
+```
+
+
+### Creating top surface area statistics table for data-driven groups
+```{r, echo=FALSE}
+Clinical <- filter(top_10) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(value ~age + group + GENDER + IQ, data=.,), type=2)))
+
+names <- unique(top_10$Measure)
+effects <- c("term", "etasq")
+
+for (idx in 1:length(unique(top_10$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + GENDER + IQ + group, data=all), type=2))
+  effects <- rbind(effects, stats)
+}
+
+effects <- effects[which(effects$term == "group"), ]
+effects$Measure <- names
+
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "group") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+All_results$df <- NULL
+
+effects$term <- NULL
+All_results <- merge(All_results, effects, by="Measure")
+All_results <- All_results %>% arrange(p.value)
+
+print(All_results)
+
+write.csv(All_results, file="../../output/4_Out-of-model_features/SA_measures_groupdiffs.csv")
+```
+
+
+### Creating top surface area statistics table for diagnostic groups
+```{r, echo=FALSE}
+Clinical <- filter(top_10) %>%
+  group_by(Measure) %>%
+  do(tidy(Anova(lm(value ~age + clin_diagnosis + GENDER + IQ, data=.,), type=2)))
+
+names <- unique(top_10$Measure)
+effects <- c("term", "etasq")
+
+for (idx in 1:length(unique(top_10$Measure))){
+  print(names[idx])
+  stats <- eta_sq(Anova(lm(all[ ,c(names[idx])] ~age + GENDER + IQ + clin_diagnosis, data=all), type=2))
+  effects <- rbind(effects, stats)
+}
+
+effects <- effects[which(effects$term == "clin_diagnosis"), ]
+effects$Measure <- names
+
+All_results <- Clinical
+All_results <- All_results %>% filter(term == "clin_diagnosis") 
+All_results$p.fdr <- p.adjust(All_results$p.value, method="fdr")
+
+All_results$statistic <- signif(All_results$statistic, digits = 3)
+All_results$p.value <- signif(All_results$p.value, digits = 3)
+All_results$df <- NULL
+
+effects$term <- NULL
+All_results <- merge(All_results, effects, by="Measure")
+
+All_results <- All_results %>% arrange(p.value)
+
+print(All_results)
+
+write.csv(All_results, file="../../output/4_Out-of-model_features/SA_measures_diagnosticdiffs.csv")
+
+```
+
+
+## General Adaptive Functioning across diagnostic and data-driven groups
+
+```{r, echo=FALSE}
+test <- all
+test <- test[which(!is.na(test$AB21GCCS)),]
+
+## clinical diagnoses
+mod <- Anova(lm(AB21GCCS ~ clin_diagnosis + GENDER + age + IQ, data=all), type=2)
+mod
+eta_sq(mod)
+
+mod <- aov(AB21GCCS ~ GENDER + age + IQ + clin_diagnosis, data=all)
+eta_sq(mod)
+TukeyHSD(mod, "clin_diagnosis")
+
+
+## adaptive functioning across data-driven groups
+mod <- Anova(lm(AB21GCCS ~ group + GENDER + age + IQ, data=all), , type=2)
+mod
+eta_sq(mod)
+
+mod <- aov(AB21GCCS ~ age + GENDER + IQ + group, data=all)
+eta_sq(mod)
+TukeyHSD(mod, "group")
+
+```
+
+
+
+
