@@ -1,0 +1,69 @@
+hemi,region,Measure
+left,banks superior temporal,L_bankssts_thickavg
+left,caudal anterior cingulate,L_caudalanteriorcingulate_thickavg
+left,caudal middle frontal,L_caudalmiddlefrontal_thickavg
+left,cuneus,L_cuneus_thickavg
+left,entorhinal,L_entorhinal_thickavg
+left,frontal pole,L_frontalpole_thickavg
+left,fusiform,L_fusiform_thickavg
+left,inferior parietal,L_inferiorparietal_thickavg
+left,inferior temporal,L_inferiortemporal_thickavg
+left,insula,L_insula_thickavg
+left,isthmus cingulate,L_isthmuscingulate_thickavg
+left,lateral occipital,L_lateraloccipital_thickavg
+left,lateral orbitofrontal,L_lateralorbitofrontal_thickavg
+left,lingual,L_lingual_thickavg
+left,medial orbito frontal,L_medialorbitofrontal_thickavg
+left,middle temporal,L_middletemporal_thickavg
+left,para central,L_paracentral_thickavg
+left,parahippocampal,L_parahippocampal_thickavg
+left,pars opercularis,L_parsopercularis_thickavg
+left,pars orbitalis,L_parsorbitalis_thickavg
+left,pars triangularis,L_parstriangularis_thickavg
+left,pericalcarine,L_pericalcarine_thickavg
+left,post central,L_postcentral_thickavg
+left,posterior cingulate,L_posteriorcingulate_thickavg
+left,pre central,L_precentral_thickavg
+left,precuneus,L_precuneus_thickavg
+left,rostral anterior cingulate,L_rostralanteriorcingulate_thickavg
+left,rostral middle frontal,L_rostralmiddlefrontal_thickavg
+left,superior frontal,L_superiorfrontal_thickavg
+left,superior parietal,L_superiorparietal_thickavg
+left,superior temporal,L_superiortemporal_thickavg
+left,supramarginal,L_supramarginal_thickavg
+left,temporal pole,L_temporalpole_thickavg
+left,transverse temporal,L_transversetemporal_thickavg
+right,banks superior temporal,R_bankssts_thickavg
+right,caudal anterior cingulate,R_caudalanteriorcingulate_thickavg
+right,caudal middle frontal,R_caudalmiddlefrontal_thickavg
+right,cuneus,R_cuneus_thickavg
+right,entorhinal,R_entorhinal_thickavg
+right,frontal pole,R_frontalpole_thickavg
+right,fusiform,R_fusiform_thickavg
+right,inferior parietal,R_inferiorparietal_thickavg
+right,inferior temporal,R_inferiortemporal_thickavg
+right,insula,R_insula_thickavg
+right,isthmus cingulate,R_isthmuscingulate_thickavg
+right,lateral occipital,R_lateraloccipital_thickavg
+right,lateral orbitofrontal,R_lateralorbitofrontal_thickavg
+right,lingual,R_lingual_thickavg
+right,medial orbito frontal,R_medialorbitofrontal_thickavg
+right,middle temporal,R_middletemporal_thickavg
+right,para central,R_paracentral_thickavg
+right,parahippocampal,R_parahippocampal_thickavg
+right,pars opercularis,R_parsopercularis_thickavg
+right,pars orbitalis,R_parsorbitalis_thickavg
+right,pars triangularis,R_parstriangularis_thickavg
+right,pericalcarine,R_pericalcarine_thickavg
+right,post central,R_postcentral_thickavg
+right,posterior cingulate,R_posteriorcingulate_thickavg
+right,pre central,R_precentral_thickavg
+right,precuneus,R_precuneus_thickavg
+right,rostral anterior cingulate,R_rostralanteriorcingulate_thickavg
+right,rostral middle frontal,R_rostralmiddlefrontal_thickavg
+right,superior frontal,R_superiorfrontal_thickavg
+right,superior parietal,R_superiorparietal_thickavg
+right,superior temporal,R_superiortemporal_thickavg
+right,supramarginal,R_supramarginal_thickavg
+right,temporal pole,R_temporalpole_thickavg
+right,transverse temporal,R_transversetemporal_thickavg

@@ -1,0 +1,538 @@
+---
+title: "Creating_cluster_figures"
+author: "Grace Jacobs"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#install.packages("remotes")
+#remotes::install_github("LCBC-UiO/ggseg", build_vignettes = FALSE, force = TRUE)
+
+library(ggseg)
+library(dplyr)
+library(tidyr)
+library(haven)
+library(ggplot2)
+library(ggpubr)
+library(plotrix)
+library(tidyverse)
+
+source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+
+all <- read.csv("output/2_Comparing_subgroups/all_snf_measures_groupdiffs.csv")
+
+CT <- read.csv("data/cortical_thickness_ggseg_labels.csv")
+
+CT <- merge(CT, all, by="Measure")
+
+CT$region <- as.character(CT$region)
+CT$hemi <- as.character(CT$hemi)
+CT$NMI <- round(CT$NMI, digits=3)
+CT$Effect_size <- round(CT$Etasq, digits=3)
+
+sub <- read.csv("data/Subcortical_ggseg_labels.csv")
+sub <- merge(sub, all, by="Measure")
+
+sub$region <- as.character(sub$region)
+sub$hemi <- as.character(sub$hemi)
+sub$NMI <- round(sub$NMI, digits=3)
+sub$Effect_size <- round(sub$Etasq, digits=3)
+
+```
+
+## Pie chart break down of the 4 clusters by diagnosis
+
+```{r, echo=FALSE}
+
+freq = table(all$clin_diagnosis)
+lbls = paste(names(freq), "-", round((freq/176)*100, 1), "%", sep="")
+
+setwd("../../output/2_Comparing_subgroups/Figures/Figure1")
+png('pie_all.png')
+#pie(freq, main="All participants", labels = lbls, cex=1.5, col=c("darkorange", "deepskyblue1", "aquamarine4"))
+pie(freq, main="All participants", labels = lbls, cex=1.5, col=c("black", "darkgray", "white"))
+dev.off()
+
+freq = table(clust1$clin_diagnosis)
+lbls = paste(names(freq), "-", round((freq/33)*100, 1), "%", sep="")
+png('pie_1.png')
+pie(freq, main="Cluster 1", labels = lbls,cex=1.5, col=c("black", "darkgray", "white"), lwd= 3)
+dev.off()
+
+freq = table(clust2$clin_diagnosis)
+lbls = paste(names(freq), "-", round((freq/54)*100, 1), "%", sep="")
+png('pie_2.png')
+pie(freq, main="Cluster 2", labels = lbls, cex=1.5, col=c("black", "darkgray", "white"))
+dev.off()
+
+freq = table(clust3$clin_diagnosis)
+lbls = paste(names(freq), "-", round((freq/41)*100, 1), "%", sep="")
+png('pie_3.png')
+pie(freq, main="Cluster 3", labels = lbls,cex=1.5, col=c("black", "darkgray", "white"))
+dev.off()
+
+freq = table(clust4$clin_diagnosis)
+lbls = paste(names(freq), "-", round((freq/48)*100, 1), "%", sep="")
+png('pie_4.png')
+pie(freq, main="Cluster 4", labels = lbls,cex=1.5, col=c("black", "darkgray", "white"))
+dev.off()
+
+```
+
+## Visualization of the differences in clinical scores between groups
+###NMI scores/contribution
+
+ADHD_I_SUB (Attention)	
+ADHD_HI_SUB (Hyperactivity) 
+SCQTOT (Social Communication)
+CB68EPTOT (Externalizing)	 
+CB68IPTOT (Internalizing)	 
+TPOCS_TOT (Obsessive Compulsive)	
+RBSALLT (Repetative Behaviours)	 
+
+#### Plot of symptom scores by group
+```{r, echo=FALSE}
+symptoms_stacked$Symptom <- factor(symptoms_stacked$Symptom, labels = c("Hyperactivity", "Inattention", "Externalizing", "Internalizing", "Repetitive\nBehaviours", "Social\nCommunication", "Obsessive\nCompulsive"))
+
+## getting the standard error of each behaviour measure
+test <- filter(symptoms_stacked) %>%
+  group_by(Symptom, group) %>%
+  summarise(std_err=std.error(severity, na.rm=TRUE), sd=sd(severity, na.rm=TRUE),  N=length(group))
+
+symptoms_stacked$std_error <- NA
+symptoms_stacked$sd <- NA
+for (i in 1:28){
+  symp <- (test[i, 1])
+  gr <- as.character(test[i, 2])
+  symptoms_stacked$std_error <- ifelse(symptoms_stacked$Symptom == symp$Symptom & symptoms_stacked$group == gr, as.numeric(test[i, c("std_err")]), symptoms_stacked$std_error)
+  symptoms_stacked$sd <- ifelse(symptoms_stacked$Symptom == symp$Symptom & symptoms_stacked$group == gr, as.numeric(test[i, c("sd")]), symptoms_stacked$sd)
+}
+
+ggplot(symptoms_stacked, aes(x=Symptom, y=severity, fill=group)) +
+  geom_boxplot() +
+  theme_classic() +
+  theme(axis.text.x = element_text(size=18, face="bold", angle = 30, hjust = 1), axis.title.x=element_blank(), legend.title=element_text(size=18), axis.text.y=element_text(size=18), axis.title.y=element_text(size=20), legend.text=element_text(size=18)) +
+  guides(fill=guide_legend(title="Groups")) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  labs(y= "Z-score") +
+    stat_summary(fun = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y.., group=group), linetype = "dotted", width = 0.75, position = position_dodge())
+
+
+ggsave("Group_behaviour_scores_residuals_stderrorbars.png", plot=last_plot(), width = 12, height = 6, units = c("in"), dpi=400, device = "png", path = "../../output/2_Comparing_subgroups/Figures/Figure1/")
+```
+
+
+#### Plot of symptom scores by diagnosis
+
+```{r, echo=FALSE}
+symptoms_stacked$Symptom <- factor(symptoms_stacked$Symptom, labels = c("Hyperactivity", "Inattention", "Externalizing", "Internalizing", "Repetitive\nBehaviours", "Social\nCommunication", "Obsessive\nCompulsive"))
+
+test <- filter(symptoms_stacked) %>%
+  group_by(Symptom, clin_diagnosis) %>%
+  summarise(std_err=std.error(severity, na.rm=TRUE), N=length(clin_diagnosis))
+
+symptoms_stacked$std_error <- NA
+
+for (i in 1:21){
+  symp <-(test[i, c("Symptom")])
+  gr <- as.character(test[i, 2])
+  symptoms_stacked$std_error <- ifelse(symptoms_stacked$Symptom == symp$Symptom & symptoms_stacked$group == gr, as.numeric(test[i, c("std_err")]), symptoms_stacked$std_error)
+}
+
+
+ggplot(symptoms_stacked, aes(x=Symptom, y=severity, fill=clin_diagnosis)) +
+  geom_boxplot() +
+  theme_classic() +
+  theme(axis.text.x = element_text(size=18, face="bold", angle = 30, hjust = 1), axis.title.x=element_blank(), legend.title=element_text(size=18), axis.text.y=element_text(size=18), axis.title.y=element_text(size=20), legend.text=element_text(size=18)) +
+  guides(fill=guide_legend(title="Diagnosis")) +
+scale_fill_manual(values=c("gray28", "darkgray", "white")) +
+  labs(y= "Z-score") +
+    stat_summary(fun = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y.., group=clin_diagnosis), linetype = "dotted", width = 0.75, position = position_dodge())
+
+ggsave("Dx_behaviour_scores_residuals_stderrorbars.png", plot=last_plot(), width = 12, height = 6, units = c("in"), dpi=400, device = "png", path ="../../output/2_Comparing_subgroups/Figures/Figure1/")
+```
+
+### Follow up Tukey tests to compare groups for each behavioural measure
+
+```{r, echo=FALSE}
+
+### data-driven groups follow up tukey tests
+mod <- aov(ADHD_HI_SUB ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(ADHD_I_SUB ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(CB68EPTOT ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(CB68IPTOT ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(RBSALLT ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(SCQTOT ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+mod <- aov(TPOCS_TOT ~ age + IQ + GENDER + group, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "group")
+
+### clinical diagnoses follow up tukey tests
+mod <- aov(ADHD_HI_SUB ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(ADHD_I_SUB ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(CB68EPTOT ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(CB68IPTOT ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(RBSALLT ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(SCQTOT ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+mod <- aov(TPOCS_TOT ~ age + IQ + GENDER + clin_diagnosis, data=all, na.action=na.exclude)
+TukeyHSD(mod, which = "clin_diagnosis")
+
+```
+
+
+### Top contributing features (5) by data type across age for Figure 2
+
+```{r, echo=FALSE}
+all$R_parstriangularis_thickavg_resid <- resid(lm(R_parstriangularis_thickavg~GENDER + IQ, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=age, y=R_parstriangularis_thickavg_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Pars Triangularis Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="Age (years)") +
+  geom_smooth(alpha=0.2, method="lm") +
+  scale_y_continuous(limits=c(-0.5, 0.5), breaks =c(-.4, -0.2, 0, 0.2, 0.4, 0.6))
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/parstriangularis_resid_groups.png", plot = last_plot())
+
+```
+
+
+```{r, echo=FALSE}
+all$R_insula_thickavg_resid <- resid(lm(R_insula_thickavg~GENDER + IQ, data=all, na.action = na.exclude))
+class(all$age)
+
+ggplot(all, aes(x=age, y=R_insula_thickavg_resid, color=groups)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Insula Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="Age (years)") +
+  geom_smooth(alpha=0.2, method="lm") +
+  scale_y_continuous(limits=c(-0.5, 0.5), breaks =c(-.4, -0.2, 0, 0.2, 0.4, 0.6))
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/rinsula_resid_groups.png", plot = last_plot())
+
+```
+
+
+```{r, echo=FALSE}
+all$Rpal_resid <- resid(lm(Rpal~GENDER + IQ, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=age, y=Rpal_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Pallidum Volume") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Volume (relative to ICV)", x="Age (years)") +
+  geom_smooth(alpha=0.2, method=lm) 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/rpallidum_resid_groups.png", plot = last_plot())
+
+```
+
+```{r, echo=FALSE}
+all$ADHD_I_SUB_resid <- resid(lm(ADHD_I_SUB~GENDER + IQ, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=age, y=ADHD_I_SUB_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("SWAN Inattention Score") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Adjusted Score", x="Age (years)") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/inattention_resid_groups.png", plot = last_plot())
+
+```
+
+```{r, echo=FALSE}
+all$ADHD_HI_SUB_resid <- resid(lm(ADHD_HI_SUB~GENDER + IQ, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=age, y=ADHD_HI_SUB_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("SWAN Hyperactivity Score") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Adjusted Score", x="Age (years)") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/hyperactivity_resid_groups.png", plot = last_plot())
+
+```
+
+
+### Group differences across IQ
+
+
+```{r, echo=FALSE}
+all$R_parstriangularis_thickavg_resid <- resid(lm(R_parstriangularis_thickavg~GENDER + age, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=IQ, y=R_parstriangularis_thickavg_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Pars Triangularis Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") +
+  scale_y_continuous(limits=c(-0.5, 0.5), breaks =c(-.4, -0.2, 0, 0.2, 0.4, 0.6))
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/parstriangularis_IQresid_groups.png", plot = last_plot())
+
+```
+
+
+```{r, echo=FALSE}
+all$R_insula_thickavg_resid <- resid(lm(R_insula_thickavg~GENDER + age, data=all, na.action = na.exclude))
+class(all$age)
+
+ggplot(all, aes(x=IQ, y=R_insula_thickavg_resid, color=groups)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Insula Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") +
+  scale_y_continuous(limits=c(-0.5, 0.5), breaks =c(-.4, -0.2, 0, 0.2, 0.4, 0.6))
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/rinsula_IQresid_groups.png", plot = last_plot())
+
+```
+
+
+```{r, echo=FALSE}
+all$Rpal_resid <- resid(lm(Rpal~GENDER + age, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=IQ, y=Rpal_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Right Pallidum Volume") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Volume (relative to ICV)", x="IQ Score") +
+  geom_smooth(alpha=0.2, method=lm) 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/rpallidum_IQresid_groups.png", plot = last_plot())
+
+```
+
+```{r, echo=FALSE}
+all$ADHD_I_SUB_resid <- resid(lm(ADHD_I_SUB~GENDER + age, data=all, na.action = na.exclude))
+
+ggplot(all, aes(x=age, y=ADHD_I_SUB_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("SWAN Inattention Score") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Adjusted Score", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/inattention_IQresid_groups.png", plot = last_plot())
+
+```
+
+```{r, echo=FALSE}
+all$ADHD_HI_SUB_resid <- resid(lm(ADHD_HI_SUB~GENDER + age, data=all, na.action = na.exclude))
+
+
+ggplot(all, aes(x=IQ, y=ADHD_HI_SUB_resid, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("SWAN Hyperactivity Score") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Adjusted Score", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/hyperactivity_IQresid_groups.png", plot = last_plot())
+
+```
+
+# Supplementary Figures
+
+### Age of groups
+
+```{r, echo=FALSE}
+my_comparisons <- list(  c("1", "3"), c("2", "3"), c("4", "3"))
+
+ggplot(all, aes(x=group, y=age)) +
+  geom_boxplot() +
+    theme_classic() +
+   labs(y= "Age (years)", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = clin_diagnosis), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("black", "darkgray", "white")) +
+  #scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=14), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_blank(), legend.text=element_text(size=16),plot.title = element_text(size=20),legend.title=element_blank()) +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "t.test")
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/age_groups.png", plot = last_plot())
+```
+
+## IQ of groups
+
+```{r, echo=FALSE}
+my_comparisons <- list(  c("1", "2"), c("1", "3"), c("4", "1"))
+
+ggplot(all, aes(x=group, y=IQ)) +
+  geom_boxplot() +
+    theme_classic() +
+   labs(y= "IQ Score", x="Group") +
+  geom_point(aes(fill = clin_diagnosis), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("black", "darkgray", "white")) +
+   theme(axis.text.y=element_text(size=14), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_blank(), legend.text=element_text(size=16),plot.title = element_text(size=20),legend.title=element_blank()) +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "t.test")
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_groups.png", plot = last_plot())
+```
+
+
+### Plot of sex distribution across groups and diagnoses
+
+```{r, echo=FALSE}
+ggplot(all, aes(x=clin_diagnosis, fill=GENDER)) +
+  theme_classic() +
+  geom_bar(stat = "Count") +
+  labs(y= "Count", x="Group") +
+  facet_wrap(~group, nrow = 1)
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/sex_distribution.png", plot = last_plot(), width = 7, height =3)
+```
+
+### IQ across diagnostic groups
+
+```{r, echo=FALSE}
+my_comparisons <- list(c("ASD", "OCD"), c("OCD", "ADHD"))
+
+ggplot(all, aes(x=clin_diagnosis, y=IQ)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = group, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("General IQ Estimate") +
+  labs(y= "IQ Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_blank(), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = 'p.signif', comparisons = my_comparisons, method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_dx.png", plot = last_plot(), width = 7, height = 5)
+```
+
+### IQ across data-driven groups
+
+
+```{r, echo=FALSE}
+my_comparisons <- list( c("4", "2"), c("1", "2"))
+
+ggplot(all, aes(x=group, y=IQ, color=group)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+    scale_fill_manual(values=c("black", "darkgray", "white")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("General IQ Estimate") +
+  labs(y= "IQ Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = "p.signif", comparisons = my_comparisons, method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_groups.png", plot = last_plot(), width = 7, height = 5)
+```
+
+
+
+### Check to see what the interaction effect is
+
+```{r, echo=FALSE}
+
+ggplot(all, aes(x=IQ, y=L_middletemporal_thickavg, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Left Middle Temporal Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/L_middletemporal_thickavg_IQ_int_groups.png", plot = last_plot())
+
+```
+
+```{r, echo=FALSE}
+
+ggplot(all, aes(x=IQ, y=L_parsorbitalis_thickavg, color=group)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Left Pars Orbitalis Thickness") +
+      scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "slateblue")) +
+  theme(axis.text.y=element_text(size=20), axis.text.x=element_text(size=20), 
+  axis.title.y=element_text(size=22),axis.title.x=element_text(size=22),plot.title = element_text(size=24), legend.title = element_blank(), legend.text =element_text(size=20) ) +
+  labs(y= "Cortical Thickness", x="IQ Score") +
+  geom_smooth(alpha=0.2, method="lm") 
+  
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/L_parsorbitalis_thickavg_IQ_int_groups.png", plot = last_plot())
+
+```
+
+
+## Cortical Thickness effect size spatial map
+```{r}
+#ggseg(atlas=dkt, position="stacked", mapping=aes(fill=area), show.legend = F)
+
+results = data.frame(cbind(area=CT$region, p=CT$Effect_size, hemi=CT$hemi), stringsAsFactors=F)
+
+results %>% 
+  ggseg(mapping=aes(fill=as.numeric(p)), position="stacked", colour="white") +
+  scale_fill_gradientn(colours = c("darkred","darkorange2","gold"),na.value="grey", breaks=c(0,0.1,0.2, 0.3, 0.4),labels=c(0,0.1,0.2, 0.3, 0.4), limits=c(0,0.4))
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/CT_effectsize.png", plot = last_plot())
+```
+
+
+## Subcortical volume effect sizes spatial map
+
+```{r}
+results <- data.frame(cbind(area=as.character(sub$region), p=sub$Effect_size, hemi=as.character(sub$hemi)))
+results$p <- as.numeric(as.character(results$p))
+
+results %>% 
+  ggseg(atlas=aseg, mapping=aes(fill=p)) +
+  scale_fill_gradientn(colours = c("darkred","darkorange2","gold"),na.value="grey", breaks=c(0,0.1,0.2, 0.3, 0.4),labels=c(0,0.1,0.2, 0.3, 0.4), limits=c(0,0.4))
+
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/subcortical_effectsize.png", plot = last_plot()) 
+
+```
