@@ -1,0 +1,136 @@
+Rank,NMI,Name
+1,0.18214172,R pars triangularis CT
+2,0.181663675,R insula CT
+3,0.181265051,SWAN Inattention
+4,0.180473987,R middle temporal CT
+5,0.172304524,L supramarginal CT
+6,0.169063392,R inferior temporal CT
+7,0.16540736,L middle temporal CT
+8,0.164960601,R superior frontal CT
+9,0.162142593,L rostral middle frontal CT
+10,0.160747816,L insula CT
+11,0.158518788,L fusiform CT
+12,0.158285449,L pars opercularis CT
+13,0.157927054,R inferior parietal CT
+14,0.157301221,R rostral middle frontal  CT
+15,0.157155811,L inferior parietal CT
+16,0.1531346,L inferior temporal CT
+17,0.149458402,R precentral CT 
+18,0.147877259,L lateral orbitofrontal CT
+19,0.147552988,L lateral occipital CT
+20,0.144608282,L lingual CT
+21,0.144575917,R supramarginal  CT
+22,0.1368396,L pars triangularis CT
+23,0.136408832,R fusiform CT
+24,0.13397477,R lateral orbitofrontal CT
+25,0.133855561,L postcentral  CT
+26,0.132091784,SWANcHyperactivity
+27,0.131578321,R lateral occipital CT
+28,0.131439809,L superior frontal CT
+29,0.126551053,R medial orbitofrontal CT
+30,0.125843429,L pericalcarine CT
+31,0.122913106,L caudal middle frontal CT
+32,0.11875632,R caudal middle frontal CT
+33,0.117815132,R postcentral  CT
+34,0.115154417,L pars orbitalis CT
+35,0.114890431,R pallidum Volume
+36,0.114366814,L precentral CT
+37,0.111911992,L superior temporal CT
+38,0.110994345,L bank of the Superior Temporal Sulcus CT
+39,0.110858956,L precuneus CT
+40,0.106877676,SCQ Social Communication
+41,0.105869162,R putamen volume
+42,0.104036823,L medial orbitofrontal CT
+43,0.101576339,R superior temporal CT
+44,0.100750222,R pars orbitalis CT
+45,0.100446129,R precuneus  CT
+46,0.098954657,R thalamus
+47,0.098093505,R nucleus accumbens volume
+48,0.097410395,R pars opercularis CT
+49,0.093680703,R paracentral CT
+50,0.092684782,R transverse temporal CT
+51,0.09252601,R bank of the superior temporal sulcus CT
+52,0.092015822,R lingual  CT
+53,0.09165905,L thalamus
+54,0.091641772,TOCS Obsessive-Compulsive
+55,0.091313423,R caudate volume
+56,0.089772755,R pericalcarine  CT
+57,0.087851012,CBCL Externalizing
+58,0.08773374,L cuneus CT
+59,0.087301372,L putamen volume
+60,0.086217753,L paracentral CT
+61,0.08424787,L superior parietal CT
+62,0.083720592,L caudate volume
+63,0.082696165,L accumbens volume
+64,0.074554139,L frontal pole CT
+65,0.074010729,L transverse temporal CT
+66,0.073496249,L rostral anterior cingulate CT
+67,0.072582643,R isthmus cingulate CT
+68,0.071724726,R superior parietal CT
+69,0.068798861,L hippocampus volume
+70,0.064043553,R frontal pole CT 
+71,0.059491139,L isthmus cingulate CT
+72,0.05831661,R para hippocampal  CT
+73,0.056963662,R hippocampus volume
+74,0.056249828,L posterior cingulate CT
+75,0.055755122,R cuneus CT
+76,0.055465458,L parahippocampal  CT
+77,0.055079673,L anterior limb of internal capsule FA
+78,0.054952972,L temporal pole CT
+79,0.054774389,R rostral anterior cingulate CT
+80,0.054247695,CBCL Internalizing 
+81,0.052830287,L pallidum volume
+82,0.051250241,R posterior cingulate CT
+83,0.04762708,R retrolenticular part of internal capsule FA
+84,0.044797908,R amygdala volume
+85,0.044150912,R temporal pole CT
+86,0.043409232,L sagittal stratum FA
+87,0.043287377,L cingulum (hippocampus) FA
+88,0.041164549,R posterior limb of internal capsule FA
+89,0.04062246,R cingulum (hippocampus) FA
+90,0.040295562,L posterior corona radiata FA
+91,0.038992142,L fornix (cres) / Stria terminalis FA
+92,0.038538023,R cerebral peduncle FA
+93,0.038293883,L cingulum (cingulate gyrus) FA
+94,0.035749034,R uncinate fasciculus FA
+95,0.035390869,Fornix (column and body of fornix) FA
+96,0.034925007,L caudal anterior cingulate CT
+97,0.03465332,R cingulum (cingulate gyrus) FA
+98,0.034621887,L amygdala volume
+99,0.033965862,L external capsule FA
+100,0.033572405,R inferior cerebellar peduncle FA
+101,0.032755456,L entorhinal CT
+102,0.032574338,R sagittal stratum FA
+103,0.031666962,L cerebral peduncle FA
+104,0.03036925,R caudal anterior cingulate
+105,0.028961249,L corticospinal tract FA
+106,0.028520317,R entorhinal CT
+107,0.028273716,R anterior limb of internal capsule FA
+108,0.027876887,L uncinate fasciculus FA
+109,0.02762321,L superior longitudinal fasciculus FA
+110,0.02733984,L anterior corona radiata FA
+111,0.027152666,RBS Repetitive Behaviours
+112,0.027030516,R medial lemniscus FA
+113,0.026744467,R superior longitudinal fasciculus FA
+114,0.026319138,L inferior cerebellar peduncle FA
+115,0.025548685,R superior cerebellar peduncle FA
+116,0.025260507,L superior corona radiata FA
+117,0.024247979,L posterior limb of internal capsule FA
+118,0.024239568,L retrolenticular part of internal capsule FA
+119,0.024045335,R posterior corona radiata FA
+120,0.023868024,Genu of corpus callosum FA
+121,0.023763339,R posterior thalamic radiation FA
+122,0.023430414,R external capsule FA
+123,0.023124312,R inferior fronto-occipital fasciculus FA
+124,0.020335332,R superior corona radiata FA
+125,0.020330833,Body of corpus callosum  FA
+126,0.019964925,L medial lemniscus  FA
+127,0.017512772,L inferior fronto-occipital fasciculus FA
+128,0.016876115,L superior fronto-occipital fasciculus FA
+129,0.016213376,R anterior corona radiata  FA
+130,0.015300938,Splenium of corpus callosum  FA
+131,0.01353881,R superior fronto-occipital fasciculus  FA
+132,0.012351704,R Fornix (cres) / Stria terminalis  FA
+133,0.011739248,R corticospinal tract FA
+134,0.00908614,L superior cerebellar peduncle FA
+135,0.007965349,L posterior thalamic radiation  FA
