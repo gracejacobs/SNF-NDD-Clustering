@@ -1,0 +1,478 @@
+---
+title: "Random Forest Model figures"
+author: "Grace Jacobs"
+
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(knitr)
+library(dplyr)
+library(tidyr)
+```
+
+```{r, echo=FALSE}
+new <- read.csv("../../output/1_SNF_analysis/4clust_groups_k18_0.8_1000perms.csv")
+new$groups_2 <- ifelse(new$groups == "1", "2", NA)
+new$groups_2 <- ifelse(new$groups == "2", "4", new$groups_2)
+new$groups_2 <- ifelse(new$groups == "3", "3", new$groups_2)
+new$groups_2 <- ifelse(new$groups == "4", "1", new$groups_2)
+new$groups <- new$groups_2
+
+directory <- ("../../output/5_Supervised_classification")
+```
+
+## Random Forest model
+
+###All features by NMI
+
+```{r, echo=FALSE}
+model <- "all_mtry80"
+
+options(scipen=999)
+adjrandindex <- read.csv(file=file.path(directory, paste("list_adjrandidx_100perms_", model, ".csv", sep="")))
+adjrandindex$X <- 1
+adjrandindex$X <- as.factor(adjrandindex$X)
+names(adjrandindex) <- c("X", "index")
+
+acc_by_group <- read.csv(file=file.path(directory, paste("acc_by_group_100perms_", model, ".csv", sep="")))
+acc_by_group <- acc_by_group[-c(1), ]
+acc_by_group$label <- rep(1:4, times=100, each=1)
+acc_by_group$label <- as.factor(acc_by_group$label)
+
+acc_overall <- read.csv(file=file.path(directory, paste("acc_overall_100perms_", model, ".csv", sep="")))
+acc_overall <- as.data.frame(t(acc_overall))
+names <- acc_overall[1,]
+colnames(acc_overall) <- t(names)
+acc_overall <- acc_overall[-1,]
+acc_overall$X <- 1
+acc_overall$X <- as.factor(acc_overall$X)
+acc_overall$Accuracy <- as.numeric(as.character(acc_overall$Accuracy))
+
+mean(acc_overall$Accuracy)
+
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Sensitivity=mean(byClass.Sensitivity))
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Spec=mean(byClass.Specificity))
+```
+
+#### All features by NMI - Plotting Adjusted Rand Index
+
+```{r, echo=FALSE}
+ggplot(adjrandindex, aes(x=X, y=index)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Adjusted Rand Index") +
+  geom_point(aes(fill = index), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed")+
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/All_features_ARI.png", sep="")), plot = last_plot(), , width = 3, height = 4)
+```
+
+#### All features by NMI - Plotting overall accuracy
+
+```{r, echo=FALSE}
+mean(acc_overall$Accuracy)
+
+ggplot(acc_overall, aes(x=X, y=Accuracy)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Overall Accuracy") +
+  geom_point(aes(fill = Accuracy), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/All_features_accuracy.png", sep="")), plot = last_plot(), , width = 3, height = 4)
+
+```
+
+#### All features by NMI - Plotting sensitivity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Sensitivity)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Sensitivity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+test <- acc_by_group[which(acc_by_group$label == "2"), ]
+mean(test$byClass.Sensitivity)
+
+ggsave(file=file.path(directory, paste("Figures/All_features_sensitivity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+```
+
+#### All features by NMI - Plotting specificity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Specificity)) +
+  geom_boxplot() +
+   labs(y= "Specificity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  theme_classic() +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+
+ggsave(file=file.path(directory, paste("Figures/All_features_specificity.png", sep="")), plot = last_plot(), , width = 6, height = 4)
+```
+
+******
+
+###Top 10 features by NMI
+```{r, echo=FALSE}
+model <- "top10_mtry5"
+
+options(scipen=999)
+adjrandindex <- read.csv(file=file.path(directory, paste("list_adjrandidx_100perms_", model, ".csv", sep="")))
+adjrandindex$X <- 1
+adjrandindex$X <- as.factor(adjrandindex$X)
+names(adjrandindex) <- c("X", "index")
+
+acc_by_group <- read.csv(file=file.path(directory, paste("acc_by_group_100perms_", model, ".csv", sep="")))
+acc_by_group <- acc_by_group[-c(1), ]
+acc_by_group$label <- rep(1:4, times=100, each=1)
+acc_by_group$label <- as.factor(acc_by_group$label)
+
+acc_overall <- read.csv(file=file.path(directory, paste("acc_overall_100perms_", model, ".csv", sep="")))
+acc_overall <- as.data.frame(t(acc_overall))
+names <- acc_overall[1,]
+colnames(acc_overall) <- t(names)
+acc_overall <- acc_overall[-1,]
+acc_overall$X <- 1
+acc_overall$X <- as.factor(acc_overall$X)
+acc_overall$Accuracy <- as.numeric(as.character(acc_overall$Accuracy))
+
+mean(acc_overall$Accuracy)
+
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Sensitivity=mean(byClass.Sensitivity))
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Spec=mean(byClass.Specificity))
+```
+
+#### Top 10 by NMI - Plotting Adjusted Rand Index
+
+```{r, echo=FALSE}
+ggplot(adjrandindex, aes(x=X, y=index)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Adjusted Rand Index") +
+  geom_point(aes(fill = index), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed")+
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/10_features_ARI.png", sep="")), plot = last_plot(), , width = 3, height = 4)
+```
+
+#### Top 10 by NMI - Plotting overall accuracy
+
+```{r, echo=FALSE}
+mean(acc_overall$Accuracy)
+
+ggplot(acc_overall, aes(x=X, y=Accuracy)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Overall Accuracy") +
+  geom_point(aes(fill = Accuracy), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/10_features_accuracy.png", sep="")), plot = last_plot(), width = 3, height = 4)
+
+```
+
+#### Top 10 by NMI - Plotting sensitivity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Sensitivity)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Sensitivity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+test <- acc_by_group[which(acc_by_group$label == "2"), ]
+mean(test$byClass.Sensitivity)
+
+ggsave(file=file.path(directory, paste("Figures/10_features_sensitivity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+
+```
+
+#### Top 10 features by NMI - Plotting specificity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Specificity)) +
+  geom_boxplot() +
+   labs(y= "Specificity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  theme_classic() +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+
+ggsave(file=file.path(directory, paste("Figures/10_features_specificity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+```
+
+*****
+
+###Top 35 by NMI
+```{r, echo=FALSE}
+model <- "top35_mtry15"
+
+options(scipen=999)
+adjrandindex <- read.csv(file=file.path(directory, paste("list_adjrandidx_100perms_", model, ".csv", sep="")))
+adjrandindex$X <- 1
+adjrandindex$X <- as.factor(adjrandindex$X)
+names(adjrandindex) <- c("X", "index")
+
+acc_by_group <- read.csv(file=file.path(directory, paste("acc_by_group_100perms_", model, ".csv", sep="")))
+acc_by_group <- acc_by_group[-c(1), ]
+acc_by_group$label <- rep(1:4, times=100, each=1)
+acc_by_group$label <- as.factor(acc_by_group$label)
+
+acc_overall <- read.csv(file=file.path(directory, paste("acc_overall_100perms_", model, ".csv", sep="")))
+acc_overall <- as.data.frame(t(acc_overall))
+names <- acc_overall[1,]
+colnames(acc_overall) <- t(names)
+acc_overall <- acc_overall[-1,]
+acc_overall$X <- 1
+acc_overall$X <- as.factor(acc_overall$X)
+acc_overall$Accuracy <- as.numeric(as.character(acc_overall$Accuracy))
+
+mean(acc_overall$Accuracy)
+
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Sensitivity=mean(byClass.Sensitivity))
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Spec=mean(byClass.Specificity))
+```
+
+#### Top 35 by NMI - Plotting Adjusted Rand Index
+
+```{r, echo=FALSE}
+ggplot(adjrandindex, aes(x=X, y=index)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Adjusted Rand Index") +
+  geom_point(aes(fill = index), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed")+
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/35_features_ARI.png", sep="")), plot = last_plot(), width = 3, height = 4)
+```
+
+#### Top 35 by NMI - Plotting overall accuracy
+
+```{r, echo=FALSE}
+mean(acc_overall$Accuracy)
+
+ggplot(acc_overall, aes(x=X, y=Accuracy)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Overall Accuracy") +
+  geom_point(aes(fill = Accuracy), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/35_features_accuracy.png", sep="")), plot = last_plot(), width = 3, height = 4)
+
+```
+
+#### Top 35 by NMI - Plotting sensitivity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Sensitivity)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Sensitivity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+test <- acc_by_group[which(acc_by_group$label == "2"), ]
+mean(test$byClass.Sensitivity)
+
+ggsave(file=file.path(directory, paste("Figures/35_features_sensitivity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+```
+
+#### Top 35 features by NMI - Plotting specificity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Specificity)) +
+  geom_boxplot() +
+   labs(y= "Specificity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  theme_classic() +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/35_features_specificity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+
+```
+
+
+***
+###Top 2 features from each data type
+```{r, echo=FALSE}
+model <- "top2_mtry4"
+
+adjrandindex <- read.csv(file=file.path(directory, paste("list_adjrandidx_100perms_", model, ".csv", sep="")))
+adjrandindex$X <- 1
+adjrandindex$X <- as.factor(adjrandindex$X)
+names(adjrandindex) <- c("X", "index")
+
+acc_by_group <- read.csv(file=file.path(directory, paste("acc_by_group_100perms_", model, ".csv", sep="")))
+acc_by_group <- acc_by_group[-c(1), ]
+acc_by_group$label <- rep(1:4, times=100, each=1)
+acc_by_group$label <- as.factor(acc_by_group$label)
+acc_overall <- read.csv(file=file.path(directory, paste("acc_overall_100perms_", model, ".csv", sep="")))
+acc_overall <- as.data.frame(t(acc_overall))
+names <- acc_overall[1,]
+colnames(acc_overall) <- t(names)
+acc_overall <- acc_overall[-1,]
+acc_overall$X <- 1
+acc_overall$X <- as.factor(acc_overall$X)
+acc_overall$Accuracy <- as.numeric(as.character(acc_overall$Accuracy))
+
+mean(acc_overall$Accuracy)
+acc_by_group$X <- seq(1, 4, 1)
+test <- acc_by_group[which(acc_by_group$X == "3"), ]
+mean(test$byClass.Balanced.Accuracy)
+
+mean(acc_overall$Accuracy)
+
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Sensitivity=mean(byClass.Sensitivity))
+filter(acc_by_group) %>%
+  group_by(label) %>%
+  summarise(Spec=mean(byClass.Specificity))
+```
+
+
+#### Top 2 features by NMI for each of the 4 data types - Plotting Adjusted Rand Index
+
+```{r, echo=FALSE}
+ggplot(adjrandindex, aes(x=X, y=index)) +
+  geom_boxplot() +
+   labs(y= "Adjusted Rand Index") +
+  theme_classic() +
+  geom_point(aes(fill = index), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed")+
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/top2_features_ARI.png", sep="")), plot = last_plot(), width = 3, height = 4)
+```
+
+#### Top 2 features by NMI for each of the 4 data types - Plotting overall accuracy
+
+```{r, echo=FALSE}
+ggplot(acc_overall, aes(x=X, y=Accuracy)) +
+  geom_boxplot() +
+   labs(y= "Overall Accuracy") +
+  theme_classic() +
+  geom_point(aes(fill = Accuracy), size = 2.5, shape = 21, position = position_jitterdodge()) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_blank(),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/top2_features_accuracy.png", sep="")), plot = last_plot(), width = 3, height = 4)
+```
+
+#### Top 2 features by NMI for each of the 4 data types - Plotting sensitivity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Sensitivity)) +
+  geom_boxplot() +
+  theme_classic() +
+   labs(y= "Sensitivity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+ggsave(file=file.path(directory, paste("Figures/top2_features_sensitivity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+```
+
+#### Top 2 features by NMI for each of the 4 data types - Plotting specificity by group
+
+```{r, echo=FALSE}
+ggplot(acc_by_group, aes(x=label, y=byClass.Specificity)) +
+  geom_boxplot() +
+   labs(y= "Specificity", x="Group", legend.title = " Clinical Diagnosis") +
+  geom_point(aes(fill = label), size = 2.5, shape = 21, position = position_jitterdodge()) +
+  theme_classic() +
+  scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+   theme(axis.text.y=element_text(size=25), axis.text.x=element_text(size=25),
+  axis.title.y=element_text(size=25),axis.title.x=element_blank(), legend.position = "none") +
+  stat_summary(fun.y = mean, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = .75, linetype = "dashed") +
+  scale_y_continuous(limits=c(0, 1), breaks =c(0, 0.2, 0.4, 0.6, 0.8, 1))
+
+
+ggsave(file=file.path(directory, paste("Figures/top2_features_specificity.png", sep="")), plot = last_plot(), width = 6, height = 4)
+```
+
+
+
