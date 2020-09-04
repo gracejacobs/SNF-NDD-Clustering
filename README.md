@@ -1,9 +1,9 @@
 Integration of Brain and Behavior Measures for Identification of Data-Driven Groups Cutting Across Children with ASD, ADHD, or OCD
-Jacobs et al, 2020
+Jacobs et al, 2020  
 
-Scripts for analyses are all in code
-Data needed for analyses (that can be shared) is in data
-All output/results/visualizations are in output
+code: Scripts for analyses  
+data: Data needed for analyses (that can be shared)   
+output: All output/results/visualizations/intermediates    
 
 Each folder is divided into 5 parts:
 1) The SNF Analysis
