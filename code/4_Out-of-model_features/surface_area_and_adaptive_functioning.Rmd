@@ -1,8 +1,6 @@
 ---
 title: "surface_area_&_adaptive_functioning"
 author: "Grace Jacobs"
-date: "14/07/2020"
-output: html_document
 ---
 
 
@@ -27,9 +25,7 @@ library(sjstats)
 library(agricolae)
 
 
-#source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
-
-source("/Users/grace/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/code/setting_up_cluster_analysis.r")
+source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
 
 intel <- all[, c("ID", "IQ")]
 CT_stacked <- merge(intel, CT_stacked, by="ID")
@@ -136,7 +132,7 @@ TukeyHSD(mod, "clin_diagnosis")
 
 
 ## adaptive functioning across data-driven groups
-mod <- Anova(lm(AB21GCCS ~ group + GENDER + age + IQ, data=all), , type=2)
+mod <- Anova(lm(AB21GCCS ~ group + GENDER + age + IQ, data=all), type=2)
 mod
 eta_sq(mod)
 

@@ -1,6 +1,5 @@
 
-## Regressing out sex and age for structural covariance analysis
-# Laura's SNF analysis
+## Regressing out sex, age, and IQ from cortical thickness values for structural covariance analysis
 
 library(dplyr)
 library(haven)
