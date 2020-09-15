@@ -20,6 +20,7 @@ new$groups_2 <- ifelse(new$groups == "4", "1", new$groups_2)
 new$groups <- new$groups_2
 
 directory <- ("../../output/5_Supervised_classification")
+
 ```
 
 ## Random Forest model

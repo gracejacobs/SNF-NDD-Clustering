@@ -24,7 +24,7 @@ measures <- read.csv("data/Data_with_headers/all_measures.csv")
 measures <- measures[, c(2:129, 198:204)]
 
 ## gets the resampling subgroups 
-source("/projects/gjacobs/POND/machine_classifier/setup_classifer_script.R")
+source("code/5_Supervised_classification/setup_classifer_script.R")
 
 numboot <- 100 # number of permutations 
 nsub <- 176 #number of subjects

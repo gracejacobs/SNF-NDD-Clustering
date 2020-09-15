@@ -385,36 +385,18 @@ ggsave("../../output/2_Comparing_subgroups/Figures/Figure2/hyperactivity_IQresid
 ```{r, echo=FALSE}
 my_comparisons <- list(  c("1", "3"), c("2", "3"), c("4", "3"))
 
-ggplot(all, aes(x=group, y=age)) +
+ggplot(all, aes(x=group, y=age, color=group)) +
   geom_boxplot() +
     theme_classic() +
+    geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
    labs(y= "Age (years)", x="Group", legend.title = " Clinical Diagnosis") +
-  geom_point(aes(fill = clin_diagnosis), size = 2.5, shape = 21, position = position_jitterdodge()) +
   scale_fill_manual(values=c("black", "darkgray", "white")) +
-  #scale_fill_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
    theme(axis.text.y=element_text(size=14), axis.text.x=element_text(size=20), 
   axis.title.y=element_text(size=22),axis.title.x=element_blank(), legend.text=element_text(size=16),plot.title = element_text(size=20),legend.title=element_blank()) +
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "t.test")
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE)
 
 ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/age_groups.png", plot = last_plot())
-```
-
-## IQ of groups
-
-```{r, echo=FALSE}
-my_comparisons <- list(  c("1", "2"), c("1", "3"), c("4", "1"))
-
-ggplot(all, aes(x=group, y=IQ)) +
-  geom_boxplot() +
-    theme_classic() +
-   labs(y= "IQ Score", x="Group") +
-  geom_point(aes(fill = clin_diagnosis), size = 2.5, shape = 21, position = position_jitterdodge()) +
-  scale_fill_manual(values=c("black", "darkgray", "white")) +
-   theme(axis.text.y=element_text(size=14), axis.text.x=element_text(size=20), 
-  axis.title.y=element_text(size=22),axis.title.x=element_blank(), legend.text=element_text(size=16),plot.title = element_text(size=20),legend.title=element_blank()) +
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "t.test")
-
-ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_groups.png", plot = last_plot())
 ```
 
 
@@ -454,7 +436,7 @@ ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_dx.png", plot =
 
 
 ```{r, echo=FALSE}
-my_comparisons <- list( c("4", "2"), c("1", "2"))
+my_comparisons <- list(c("1", "2"), c("1", "3"), c("4", "1"))
 
 ggplot(all, aes(x=group, y=IQ, color=group)) +
   geom_boxplot() +
@@ -466,7 +448,7 @@ ggplot(all, aes(x=group, y=IQ, color=group)) +
   labs(y= "IQ Score", x="Group", legend.title = " Clinical Diagnosis") +
     theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
   axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
-  stat_compare_means(label = "p.signif", comparisons = my_comparisons, method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+  stat_compare_means(label = "p.signif", comparisons = my_comparisons, method = "t.test", p.adjust.method = "none", hide.ns = TRUE) 
 
 ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/IQ_groups.png", plot = last_plot(), width = 7, height = 5)
 ```
@@ -507,6 +489,84 @@ ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/L_parsorbitalis_th
 
 ```
 
+## Looking at social communication scores and obsessive-compulsive scores for the ASD subgroup in Group 1 compared to ASD participants in other groups
+
+
+```{r, echo=FALSE}
+test <- all[which(all$clin_diagnosis == "ASD"), ]
+my_comparisons <- list(c("1", "2"), c("1", "3"))
+
+ggplot(test, aes(x=group, y=TPOCS_TOT, color=group)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+    scale_fill_manual(values=c("darkgray")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("Obsessive-Compulsive Score") +
+  labs(y= "TOCS Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = "p.signif", comparisons = my_comparisons, method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/ASD_OCDsubgroup.png", plot = last_plot(), width = 7, height = 5)
+```
+
+```{r, echo=FALSE}
+test <- all[which(all$clin_diagnosis == "ASD"), ]
+my_comparisons <- list(c("1", "2"), c("1", "3"), c("4", "1"))
+
+ggplot(test, aes(x=group, y=SCQTOT, color=group)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+    scale_fill_manual(values=c("darkgray")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("Social Communication Score") +
+  labs(y= "SCQ Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = "p.signif", comparisons = my_comparisons, method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/Social_comm_ASDsubgroup.png", plot = last_plot(), width = 7, height = 5)
+```
+
+```{r, echo=FALSE}
+test <- all[which(all$clin_diagnosis == "OCD"), ]
+my_comparisons <- list(c("1", "2"), c("1", "3"))
+
+ggplot(test, aes(x=group, y=TPOCS_TOT, color=group)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+    scale_fill_manual(values=c("white")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("Obsessive-Compulsive Score") +
+  labs(y= "TOCS Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = "p.signif", method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/OCD_OCDsubgroup.png", plot = last_plot(), width = 7, height = 5)
+```
+
+
+```{r, echo=FALSE}
+test <- all[which(all$clin_diagnosis == "OCD"), ]
+
+ggplot(test, aes(x=group, y=SCQTOT, color=group)) +
+  geom_boxplot() +
+    theme_classic() +
+  geom_point(aes(fill = clin_diagnosis, color = group), size = 2, colour= "black", shape = 21, position = position_jitterdodge()) +
+    scale_fill_manual(values=c("white")) +
+  scale_color_manual(values=c("palevioletred", "darkkhaki", "turquoise3", "mediumpurple")) +
+  ggtitle("Social Communication Score") +
+  labs(y= "SCQ Score", x="Group", legend.title = " Clinical Diagnosis") +
+    theme(axis.text.y=element_text(size=18), axis.text.x=element_text(size=18), 
+  axis.title.y=element_text(size=18),axis.title.x=element_text(size=18), legend.text=element_text(size=18),plot.title = element_text(size=22), legend.title=element_blank())  +
+  stat_compare_means(label = "p.signif", method = "t.test", p.adjust.method = "fdr", hide.ns = TRUE) 
+
+ggsave("../../output/2_Comparing_subgroups/Figures/Supplement/Social_comm_OCDsubgroup.png", plot = last_plot(), width = 7, height = 5)
+```
 
 ## Cortical Thickness effect size spatial map
 ```{r}

@@ -55,7 +55,7 @@ ggsave("../../output/4_Out-of-model_features/Figures/genadaptfunc_resid_groups.p
 Diagnostic Groups  
 
 ```{r, echo=FALSE}
-my_comparisons <- list( c("ASD", "OCD"))
+my_comparisons <- list( c("ASD", "OCD"), c("ASD", "ADHD"))
 all$AB21GCCS_resid <- resid(lm(AB21GCCS~GENDER + age + IQ, data=all, na.action=na.exclude))
 
 ggplot(all, aes(x=clin_diagnosis, y=AB21GCCS_resid)) +

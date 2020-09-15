@@ -20,7 +20,6 @@ volume <- read.csv("data/Data_for_SNF/Volumes_snf.csv", header=FALSE)
 FA <- read.csv("data/Data_for_SNF/FA_snf.csv", header=FALSE)
 clinical <-  read.csv("data/Data_for_SNF/pond_snf.csv", header=FALSE)
 
-#directory <- ("/projects/gjacobs/POND/Running_SNF/Corrected_all_trio_Jan2020/Include_doubtfuls/Stability")
 directory <- ("output/3_Stability")
 
 source("code/3_Stability_testing/bootstrapping_scripts/bootstrapping.r")

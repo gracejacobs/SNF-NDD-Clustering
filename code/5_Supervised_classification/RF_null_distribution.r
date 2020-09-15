@@ -13,8 +13,13 @@ labels$groups_2 <- ifelse(labels$groups == "4", "1", labels$groups_2)
 labels$groups <- labels$groups_2
 labels <- as.data.frame(labels$groups)
 
-ids <- read.csv("data/Data_with_headers/ids.csv") # participant subject identifiers
+# participant subject identifiers
+ids <- read.csv("data/Data_with_headers/ids.csv") 
+ids <- read.csv("~/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/data/Data_with_headers/ids.csv") # participant subject identifiers
+
+# cortical thickness, subcortical volume, FA, and behavioral data for each participant
 measures <- read.csv("data/Data_with_headers/all_measures.csv")
+measures <- read.csv("~/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/data/Data_with_headers/all_measures.csv")
 measures <- measures[, c(2:129, 198:204)]
 
 # setting up the classifier
@@ -25,7 +30,7 @@ nsub <- 176 #number of subjects
 bootsize <- 0.8 #what percentage of participants do you want to take per permuation
 
 ## getting the testing and training set
-both <- dividing_data(numboot=numboot, nsub=nsub, bootsize=bootsize, labels=labels, measures=measures, ids=ids)
+both <- dividing_data(numboot=numboot, nsub=nsub, bootsize=bootsize)
 train <- both[1:numboot, ]
 test <- both[(1+numboot):(2*numboot), ]
 
@@ -39,10 +44,10 @@ names <- gsub('-', '.', names)
 names <- gsub('/', '.', names)
 names <- as.data.frame(names)
 
-measures <- measures[,colnames(measures) %in% names] 
+measures_1 <- measures[,colnames(measures) %in% names$names] 
 
 # adding the cluster labels to the measures
-lm <- cbind(labels, measures)
+lm <- cbind(labels, measures_1)
 # adding the cluster labels to the ids
 lm <- cbind(ids, lm)
 # ordering measures by cluster labels
@@ -76,7 +81,7 @@ for(idx in 1:numboot){
   labels_test <- as.factor(testing_set[ ,2])
   testing_set[,1:2] <- NULL
   # running the model
-  model.rf = randomForest(labels_train ~. , data=training_set, ntree=501, mtry=80, importance=TRUE)
+  model.rf = randomForest(labels_train ~., data=training_set, ntree=501, mtry=80, importance=TRUE)
 
   rfpredict <- predict(model.rf, testing_set)
   stats <- confusionMatrix(rfpredict, labels_test) 
@@ -144,14 +149,10 @@ names <- as.data.frame(names)
 names <- names[which(names$names == "ADHD_I_SUB" | names$names == "ADHD_HI_SUB"| names$names == "R_insula_thickavg"| names$names == "R_parstriangularis_thickavg"
                      | names$names =="Rpal"| names$names =="Rput"| names$names == "ALIC.L"| names$names == "RLIC.R"),]
 
-measures <- measures[,colnames(measures) %in% names] 
-names(measures)
-# checking measure variance
-nzv <- nearZeroVar(measures, saveMetrics = TRUE)
-sum(nzv$nzv == TRUE)
+measures_1 <- measures[,colnames(measures) %in% names] 
 
 # adding the cluster labels to the measures
-lm <- cbind(labels, measures)
+lm <- cbind(labels, measures_1)
 # adding the cluster labels to the ids
 lm <- cbind(ids, lm)
 # ordering measures by cluster labels
@@ -254,9 +255,6 @@ names <- names[1:35, ]
 
 measures <- measures[,colnames(measures) %in% names] 
 names(measures)
-# checking measure variance
-nzv <- nearZeroVar(measures, saveMetrics = TRUE)
-sum(nzv$nzv == TRUE)
 
 # adding the cluster labels to the measures
 lm <- cbind(labels, measures)
