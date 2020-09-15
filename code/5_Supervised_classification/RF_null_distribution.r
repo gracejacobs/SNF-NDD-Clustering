@@ -15,11 +15,9 @@ labels <- as.data.frame(labels$groups)
 
 # participant subject identifiers
 ids <- read.csv("data/Data_with_headers/ids.csv") 
-ids <- read.csv("~/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/data/Data_with_headers/ids.csv") # participant subject identifiers
 
 # cortical thickness, subcortical volume, FA, and behavioral data for each participant
 measures <- read.csv("data/Data_with_headers/all_measures.csv")
-measures <- read.csv("~/Documents/Research/POND_snf_project/POND-Subgroups-Analysis/data/Data_with_headers/all_measures.csv")
 measures <- measures[, c(2:129, 198:204)]
 
 # setting up the classifier
