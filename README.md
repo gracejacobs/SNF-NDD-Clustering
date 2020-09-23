@@ -12,4 +12,4 @@ Each folder is divided into 5 parts:
 4) Out-of-model comparisons
 5) Supervised classification analysis
 
-The PIs of the POND Network (Evdokia Anagnostou, Jason Lerch) have made a commitment to release the data, however this is controlled and managed by the funding agency. The Ontario Brain Institute has given us an expected date of release as Fall 2020. BrainCODE information can be found at https://www.braincode.ca/. 
+The POND Network has made a commitment to release the data. Data release is controlled and managed by the funding agency, known as the Ontario Brain Institute (OBI). The OBI has estimated that POND data will be released in 2020 via the Brain-CODE portal. Please see https://www.braincode.ca/. 
