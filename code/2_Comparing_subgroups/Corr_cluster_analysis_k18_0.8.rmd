@@ -1,7 +1,6 @@
 ---
-title: "POND SNF Cluster analysis"
+title: "POND SNF Cluster comparison analysis"
 author: "Grace Jacobs"
-date: "June 2020"
 output: html_document
 ---
 
@@ -26,7 +25,7 @@ library(sjstats)
 library(agricolae)
 
 
-#source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+#source("code/2_Comparing_subgroups/setting_up_data_for_cluster_analysis.r")
 
 intel <- all[, c("ID", "IQ")]
 CT_stacked <- merge(intel, CT_stacked, by="ID")
@@ -54,11 +53,12 @@ Parameters below chosen based on SNF guidelines and increasing the NMI scores ea
 K=18
 iterations=10  
 hyperparameter=0.8  
-No individuals cluster unreliably according to resampling for the robust script
+No individuals cluster unreliably 
 
-### Similarity Network Clusters
+### Similarity Network Fusion Clusters
 
 ##Demographics of groups and their symptom severity for clinical symptoms
+
 ```{r, echo=FALSE}
 Demographics <- filter(all) %>%
   group_by(group) %>%
