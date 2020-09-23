@@ -25,7 +25,7 @@ library(sjstats)
 library(agricolae)
 
 
-source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+source("code/2_Comparing_subgroups/setting_up_data_for_cluster_analysis.r")
 
 intel <- all[, c("ID", "IQ")]
 CT_stacked <- merge(intel, CT_stacked, by="ID")

@@ -17,7 +17,7 @@ library(ggpubr)
 library(plotrix)
 library(tidyverse)
 
-source("code/2_Comparing_subgroups/setting_up_cluster_analysis.r")
+source("code/2_Comparing_subgroups/setting_up_data_for_cluster_analysis.r")
 
 all <- read.csv("output/2_Comparing_subgroups/all_snf_measures_groupdiffs.csv")
 

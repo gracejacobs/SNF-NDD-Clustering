@@ -1,23 +1,18 @@
 ###################
-#     Robust Core-clustering function
-###################
+# Robust Core-clustering function
 
-# This set of functions finds the share of times a random draw of your 
-# sample will put each pair of individuals in the same cluster. 
-# This allows you to (1) only include individuals who reliably cluster within
-# their own cluster in the analysis and (2) identify cluster that stably 
-# persist given a certain number of samplings of your data. 
+# This set of functions integrates data types using SNF into a final fused similarity matrix and then clusters participants
+# using spectral clustering across resampling 80% of participants 1000 times
+
+# This allows you to (1) identify cluster that stably persist given a certain number of samplings of your data and 
+#(2) only include individuals who reliably cluster within their own cluster in the analysis. 
 
 ## Finds the core clustering matrices. 
-## (1) The first matrix it finds is nxn with each cell representing the share of times 
-## each individual i clusters with individual j. 
-## (2) The second matrix sets values that represent below random shares of cluster 
-## (i.e. share < (1/number of clusters)^2) to zero
+## (1) The first matrix it finds is nxn with each cell representing the share of times each individual i clusters with individual j. 
+## (2) The second matrix sets values that represent below random shares of cluster (i.e. share < (1/number of clusters)^2) to zero
 
 RobustCoreClusteringMatrix <- function(feature.affinity.mat.list,num.clusts,exp.num.samples = 1000,percent.sample = 0.8, clust.type = 2,seed = 3333){
-  ## feature.affinity.mat.list = List of features you used to generate your SNF matrix 
-    ## (same as input to the SNF function)
-  
+  ## feature.affinity.mat.list = List of features you used to generate your SNF matrix (same as input to the SNF function) 
   ## num.clusts = the number of clusters you'd like to test the co-clustering of
   ## exp.num.samples = the expected number of times you would like to sample each individual
   ## percent.sample = the percentage of individuals you'd like to sample each time
@@ -30,12 +25,12 @@ RobustCoreClusteringMatrix <- function(feature.affinity.mat.list,num.clusts,exp.
     rownames(feature.affinity.mat.list[[m]]) = colnames(feature.affinity.mat.list[[m]]) = as.character(1:n.patients)  
   }
   
-  ## Creating empty matrix to put number of times the individuals are *sampled* together
+  ## Creating empty matrix to put number of times the individuals are sampled together
   n.pair.clust.mat <- matrix(0,nrow=n.patients,ncol=n.patients)
   ## Naming the rows and columns '1','2',...
   colnames(n.pair.clust.mat) <- rownames(n.pair.clust.mat) <- as.character(1:n.patients)
   
-  ## Create an empty matrix to count the number of times a pair of individuals *cluster* together
+  ## Create an empty matrix to count the number of times a pair of individuals cluster together
   count.coclust.mat <- matrix(0,nrow=n.patients,ncol=n.patients)
   ## Naming the rows and columns '1','2',...
   colnames(count.coclust.mat) <- rownames(count.coclust.mat) <- as.character(1:n.patients)

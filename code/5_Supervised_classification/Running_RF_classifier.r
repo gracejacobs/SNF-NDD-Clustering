@@ -31,7 +31,7 @@ nsub <- 176 #number of subjects
 bootsize <- 0.8 #what percentage of participants to take per permuation
 
 ## getting the testing and training set
-both <- dividing_data(numboot=numboot, nsub=nsub, bootsize=bootsize, labels=labels, measures=measures, ids=ids)
+both <- dividing_data(numboot=numboot, nsub=nsub, bootsize=bootsize)
 train <- both[1:numboot, ]
 test <- both[(1+numboot):(2*numboot), ]
 

@@ -11,3 +11,5 @@ Each folder is divided into 5 parts:
 3) Stability of clusters
 4) Out-of-model comparisons
 5) Supervised classification analysis
+
+The POND Network has made a commitment to release the data. Data release is controlled and managed by the funding agency, known as the Ontario Brain Institute (OBI). The OBI has estimated that POND data will be released in 2020 via the Brain-CODE portal. Please see https://www.braincode.ca/. 

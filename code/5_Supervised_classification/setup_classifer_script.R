@@ -6,7 +6,7 @@ library(fossil)
 library(caret)
 
 # function to divide the data into training and testing samples across permutations
-dividing_data <- function(numboot, nsub, bootsize, group1size, group2size, group3size, group4size){
+dividing_data <- function(numboot, nsub, bootsize){
   
   perms <- data.frame(matrix(0, nrow = numboot, ncol = nsub))
   bn <- nsub*bootsize #number of subjects in each bootstrap
